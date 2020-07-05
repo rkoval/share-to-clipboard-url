@@ -27,7 +27,7 @@ func parseText(clipboardText, content string) error {
 	for _, handler := range handlers {
 		result, err := handler(u, content)
 		if err != nil {
-			notify.Push("❌ Error", err, "", notificator.UR_CRITICAL)
+			notify.Push("❌ Error", err.Error(), "", notificator.UR_CRITICAL)
 			return err
 		}
 		if result != "" {
