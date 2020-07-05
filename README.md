@@ -1,10 +1,11 @@
 # share-to-clipboard-url
 
-Simple CLI tool which will attempt to parse a URL from your clipboard and then post whatever is read from stdin to as a reply to the parsed clipboard link.
+A simple CLI tool which will attempt to parse a URL from your clipboard and then post whatever is read from stdin as a reply to the parsed clipboard link.
 
 To install, run:
 
 ```sh
+# go must be installed
 go get github.com/rkoval/share-to-clipboard-url
 ```
 
