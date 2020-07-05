@@ -52,9 +52,10 @@ func parseUrl(u *url.URL) (*GithubInfo, error) {
 }
 
 func postComment(githubInfo *GithubInfo, content string) (string, error) {
-	AccessToken, success := os.LookupEnv("GITHUB_ACCESS_TOKEN")
+	envVar := "SHARE_TO_CLIPBOARD_LINK_GITHUB_ACCESS_TOKEN"
+	AccessToken, success := os.LookupEnv(envVar)
 	if !success {
-		return "", errors.New("GITHUB_ACCESS_TOKEN env var was not set")
+		return "", errors.New(envVar + " env var was not set")
 	}
 
 	ctx := context.Background()
