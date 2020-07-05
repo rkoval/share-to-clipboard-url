@@ -10,7 +10,7 @@ import (
 	"github.com/0xAX/notificator"
 	"github.com/atotto/clipboard"
 	"github.com/fatih/color"
-	"github.com/rkoval/share-to-clipboard-link/sharers"
+	"github.com/rkoval/share-to-clipboard-url/sharers"
 )
 
 func parseText(clipboardText, content string) error {
@@ -21,7 +21,7 @@ func parseText(clipboardText, content string) error {
 	}
 
 	notify := notificator.New(notificator.Options{
-		AppName: "share-to-clipboard-link",
+		AppName: "share-to-clipboard-url",
 	})
 
 	for _, handler := range handlers {
@@ -59,7 +59,7 @@ func main() {
 	clipboardText := readClipboard()
 	err = parseText(clipboardText, content)
 	for err != nil {
-		fmt.Fprintln(os.Stderr, "clipboard did not have a supported link:\n", color.BlackString(clipboardText))
+		fmt.Fprintln(os.Stderr, "clipboard did not have a supported url:\n", color.BlackString(clipboardText))
 		time.Sleep(1 * time.Second)
 		clipboardText := readClipboard()
 		err = parseText(clipboardText, content)

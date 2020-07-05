@@ -1,4 +1,4 @@
-module github.com/rkoval/share-to-clipboard-link
+module github.com/rkoval/share-to-clipboard-url
 
 go 1.14
 
