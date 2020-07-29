@@ -33,6 +33,11 @@ func parseText(clipboardText, content string) error {
 		if result != "" {
 			fmt.Println(result)
 			notify.Push("✅ Success", result, "", notificator.UR_NORMAL)
+			// set clipboard to commit we just posted so that we don't accidentally post to a previous comment if we forgot to copy a new one
+			err := clipboard.WriteAll(content)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil
