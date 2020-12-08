@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"net/url"
@@ -13,9 +14,9 @@ import (
 	"github.com/rkoval/share-to-clipboard-url/sharers"
 )
 
-func parseText(clipboardText, content string) error {
+func parseText(rawUrl, content string) error {
 	handlers := []func(*url.URL, string) (string, error){sharers.ShareToGithub}
-	u, err := url.Parse(clipboardText)
+	u, err := url.Parse(rawUrl)
 	if err != nil {
 		return err
 	}
@@ -54,15 +55,33 @@ func readClipboard() string {
 }
 
 func main() {
-	rawInput, err := ioutil.ReadAll(os.Stdin)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(2)
+	var content string
+	flag.StringVar(&content, "content", "", "content override if nothing passed to stdin")
+	var url string
+	flag.StringVar(&url, "url", "", "url override if not using clipboard")
+	flag.Parse()
+
+	if content == "" {
+		rawInput, err := ioutil.ReadAll(os.Stdin)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(2)
+		}
+		content = string(rawInput)
 	}
-	content := string(rawInput)
+
+	if url != "" {
+		fmt.Fprintln(os.Stderr, color.BlackString("not reading from clipboard; url override argument provided:\n"), color.BlackString(url))
+		err := parseText(url, content)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(2)
+		}
+		os.Exit(0)
+	}
 
 	clipboardText := readClipboard()
-	err = parseText(clipboardText, content)
+	err := parseText(clipboardText, content)
 	for err != nil {
 		fmt.Fprintln(os.Stderr, "clipboard did not have a supported url:\n", color.BlackString(clipboardText))
 		time.Sleep(1 * time.Second)
