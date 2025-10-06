@@ -6,7 +6,7 @@ To install, run:
 
 ```sh
 # go must be installed
-go get github.com/rkoval/share-to-clipboard-url
+go install github.com/rkoval/share-to-clipboard-url@latest
 ```
 
 Example usage [here](https://github.com/rkoval/dotfiles/blob/69a6149b3992d29e1b3f3b1fbee58af708b82928/source/50_misc.sh#L70-L93)

@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/url"
 	"os"
 	"time"
@@ -62,7 +62,7 @@ func main() {
 	flag.Parse()
 
 	if content == "" {
-		rawInput, err := ioutil.ReadAll(os.Stdin)
+		rawInput, err := io.ReadAll(os.Stdin)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(2)
