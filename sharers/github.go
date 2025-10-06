@@ -126,9 +126,17 @@ func postComment(githubInfo *GithubInfo, content string) (string, error) {
 
 func ShareToGithub(u *url.URL, content string) (string, error) {
 	hostname := u.Hostname()
-	if hostname != "github.com" {
+	extraHost := os.Getenv("SHARE_TO_CLIPBOARD_URL_EXTRA_GITHUB_HOST")
+
+	isValidHost := hostname == "github.com"
+	if !isValidHost && extraHost != "" {
+		isValidHost = hostname == extraHost
+	}
+
+	if !isValidHost {
 		return "", errors.New("hostname is not github")
 	}
+
 	parsers := []func(u *url.URL) (*GithubInfo, error){parseCommitCommentUrl, parsePullRequestUrl}
 	var err error
 	var githubInfo *GithubInfo

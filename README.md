@@ -15,7 +15,7 @@ For a list of supported sharers, see [this directory](./sharers)
 
 To use, you must create a personal access token in your provider and associate it with the correct environment variable:
 
-| Provider                                                                                              | Scopes | Environment Variable                         |
-| ----------------------------------------------------------------------------------------------------- | ------ | -------------------------------------------- |
-| [GitHub](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token) | `repo` | `SHARE_TO_CLIPBOARD_URL_GITHUB_ACCESS_TOKEN` |
-| [GitLab](https://docs.gitlab.com/user/profile/personal_access_tokens/)                                | `repo` | `SHARE_TO_CLIPBOARD_URL_GITLAB_ACCESS_TOKEN` |
+|| Provider | Scopes | Environment Variable | Extra Host Env Var (for Enterprise Usage) |
+|| ----------------------------------------------------------------------------------------------------- | ------ | -------------------------------------------- | ---- |
+|| [GitHub](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token) | `repo` | `SHARE_TO_CLIPBOARD_URL_GITHUB_ACCESS_TOKEN` | `SHARE_TO_CLIPBOARD_URL_EXTRA_GITHUB_HOST` |
+|| [GitLab](https://docs.gitlab.com/user/profile/personal_access_tokens/) | `api` | `SHARE_TO_CLIPBOARD_URL_GITLAB_ACCESS_TOKEN` | `SHARE_TO_CLIPBOARD_URL_EXTRA_GITLAB_HOST` |
