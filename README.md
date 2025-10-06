@@ -13,4 +13,9 @@ Example usage [here](https://github.com/rkoval/dotfiles/blob/69a6149b3992d29e1b3
 
 For a list of supported sharers, see [this directory](./sharers)
 
-- To use GitHub, [create a personal access token](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token) with the `repo` scope and assign it to the environment variable `SHARE_TO_CLIPBOARD_URL_GITHUB_ACCESS_TOKEN` before running this program
+To use, you must create a personal access token in your provider and associate it with the correct environment variable:
+
+| Provider                                                                                              | Scopes | Environment Variable                         |
+| ----------------------------------------------------------------------------------------------------- | ------ | -------------------------------------------- |
+| [GitHub](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token) | `repo` | `SHARE_TO_CLIPBOARD_URL_GITHUB_ACCESS_TOKEN` |
+| [GitLab](https://docs.gitlab.com/user/profile/personal_access_tokens/)                                | `repo` | `SHARE_TO_CLIPBOARD_URL_GITLAB_ACCESS_TOKEN` |

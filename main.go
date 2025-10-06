@@ -15,7 +15,10 @@ import (
 )
 
 func parseText(rawUrl, content string) error {
-	handlers := []func(*url.URL, string) (string, error){sharers.ShareToGithub}
+	handlers := []func(*url.URL, string) (string, error){
+		sharers.ShareToGithub,
+		sharers.ShareToGitlab,
+	}
 	u, err := url.Parse(rawUrl)
 	if err != nil {
 		return err
