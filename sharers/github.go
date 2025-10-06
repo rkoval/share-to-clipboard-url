@@ -75,7 +75,7 @@ func parseCommitCommentUrl(u *url.URL) (*GithubInfo, error) {
 	}, nil
 }
 
-func postComment(githubInfo *GithubInfo, content string) (string, error) {
+func postComment(githubInfo *GithubInfo, content string, hostname string) (string, error) {
 	envVar := "SHARE_TO_CLIPBOARD_URL_GITHUB_ACCESS_TOKEN"
 	AccessToken, success := os.LookupEnv(envVar)
 	if !success {
@@ -88,7 +88,20 @@ func postComment(githubInfo *GithubInfo, content string) (string, error) {
 	)
 	tc := oauth2.NewClient(ctx, ts)
 
-	client := github.NewClient(tc)
+	var client *github.Client
+	var err error
+	if hostname != "github.com" {
+		// GitHub Enterprise
+		baseURL := "https://" + hostname + "/api/v3/"
+		uploadURL := "https://" + hostname + "/api/uploads/"
+		client, err = github.NewEnterpriseClient(baseURL, uploadURL, tc)
+		if err != nil {
+			return "", err
+		}
+	} else {
+		// GitHub.com
+		client = github.NewClient(tc)
+	}
 
 	var HTMLURL string
 	if githubInfo.pullRequestNumber != 0 {
@@ -149,7 +162,7 @@ func ShareToGithub(u *url.URL, content string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	result, err := postComment(githubInfo, content)
+	result, err := postComment(githubInfo, content, hostname)
 	if err != nil {
 		return "", err
 	}

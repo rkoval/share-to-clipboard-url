@@ -72,16 +72,28 @@ func parseGitlabCommitCommentUrl(u *url.URL) (*GitlabInfo, error) {
 	}, nil
 }
 
-func postGitlabComment(gitlabInfo *GitlabInfo, content string) (string, error) {
+func postGitlabComment(gitlabInfo *GitlabInfo, content string, hostname string) (string, error) {
 	envVar := "SHARE_TO_CLIPBOARD_URL_GITLAB_ACCESS_TOKEN"
 	accessToken, success := os.LookupEnv(envVar)
 	if !success {
 		return "", errors.New(envVar + " env var was not set")
 	}
 
-	client, err := gitlab.NewClient(accessToken)
-	if err != nil {
-		return "", err
+	var client *gitlab.Client
+	var err error
+	if hostname != "gitlab.com" {
+		// Self-hosted GitLab
+		baseURL := "https://" + hostname + "/api/v4"
+		client, err = gitlab.NewClient(accessToken, gitlab.WithBaseURL(baseURL))
+		if err != nil {
+			return "", err
+		}
+	} else {
+		// GitLab.com
+		client, err = gitlab.NewClient(accessToken)
+		if err != nil {
+			return "", err
+		}
 	}
 
 	ctx := context.Background()
@@ -153,7 +165,7 @@ func ShareToGitlab(u *url.URL, content string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	result, err := postGitlabComment(gitlabInfo, content)
+	result, err := postGitlabComment(gitlabInfo, content, hostname)
 	if err != nil {
 		return "", err
 	}
