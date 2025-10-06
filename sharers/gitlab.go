@@ -138,7 +138,7 @@ func ShareToGitlab(u *url.URL, content string) (string, error) {
 	}
 
 	if !isValidHost {
-		return "", errors.New("hostname is not gitlab")
+		return "", nil
 	}
 
 	parsers := []func(u *url.URL) (*GitlabInfo, error){parseGitlabCommitCommentUrl, parseMergeRequestUrl}

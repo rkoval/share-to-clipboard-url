@@ -134,7 +134,7 @@ func ShareToGithub(u *url.URL, content string) (string, error) {
 	}
 
 	if !isValidHost {
-		return "", errors.New("hostname is not github")
+		return "", nil
 	}
 
 	parsers := []func(u *url.URL) (*GithubInfo, error){parseCommitCommentUrl, parsePullRequestUrl}

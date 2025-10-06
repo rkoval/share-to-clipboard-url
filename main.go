@@ -14,14 +14,14 @@ import (
 	"github.com/rkoval/share-to-clipboard-url/sharers"
 )
 
-func parseText(rawUrl, content string) error {
+func parseText(rawUrl, content string) (bool, error) {
 	handlers := []func(*url.URL, string) (string, error){
 		sharers.ShareToGithub,
 		sharers.ShareToGitlab,
 	}
 	u, err := url.Parse(rawUrl)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	notify := notificator.New(notificator.Options{
@@ -31,8 +31,9 @@ func parseText(rawUrl, content string) error {
 	for _, handler := range handlers {
 		result, err := handler(u, content)
 		if err != nil {
-			notify.Push("❌ Error", err.Error(), "", notificator.UR_CRITICAL)
-			return err
+			return false, err
+		} else if result == "" {
+			continue
 		}
 		if result != "" {
 			fmt.Println(result)
@@ -40,11 +41,11 @@ func parseText(rawUrl, content string) error {
 			// set clipboard to commit we just posted so that we don't accidentally post to a previous comment if we forgot to copy a new one
 			err := clipboard.WriteAll(content)
 			if err != nil {
-				return err
+				return false, err
 			}
 		}
 	}
-	return nil
+	return true, nil
 }
 
 func readClipboard() string {
@@ -75,7 +76,7 @@ func main() {
 
 	if url != "" {
 		fmt.Fprintln(os.Stderr, color.BlackString("not reading from clipboard; url override argument provided:\n"), color.BlackString(url))
-		err := parseText(url, content)
+		_, err := parseText(url, content)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(2)
@@ -84,11 +85,19 @@ func main() {
 	}
 
 	clipboardText := readClipboard()
-	err := parseText(clipboardText, content)
-	for err != nil {
+	shouldRetry, err := parseText(clipboardText, content)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(2)
+	}
+	for shouldRetry {
 		fmt.Fprintln(os.Stderr, "clipboard did not have a supported url:\n", color.BlackString(clipboardText))
 		time.Sleep(1 * time.Second)
 		clipboardText := readClipboard()
-		err = parseText(clipboardText, content)
+		shouldRetry, err = parseText(clipboardText, content)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(2)
+		}
 	}
 }
