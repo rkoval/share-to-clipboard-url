@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/url"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/0xAX/notificator"
@@ -74,6 +75,7 @@ func main() {
 		}
 		content = string(rawInput)
 	}
+	content = strings.TrimSpace(content)
 
 	if url != "" {
 		fmt.Fprintln(os.Stderr, color.BlackString("not reading from clipboard; url override argument provided:\n"), color.BlackString(url))

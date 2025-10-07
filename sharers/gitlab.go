@@ -101,40 +101,156 @@ func postGitlabComment(gitlabInfo *GitlabInfo, content string, hostname string) 
 
 	var noteURL string
 	if gitlabInfo.mergeRequestIID != 0 {
-		// Create a reply note
-		note, _, err := client.Notes.CreateMergeRequestNote(
+		// Find the discussion that contains our note by fetching all discussions with pagination
+		var discussionID string
+		page := 1
+		perPage := 100
+
+		for {
+			discussions, resp, err := client.Discussions.ListMergeRequestDiscussions(
+				projectID,
+				gitlabInfo.mergeRequestIID,
+				&gitlab.ListMergeRequestDiscussionsOptions{
+					Page:    page,
+					PerPage: perPage,
+				},
+				gitlab.WithContext(ctx),
+			)
+			if err != nil {
+				return "", err
+			}
+
+			// Search for our note in the discussions
+			for _, discussion := range discussions {
+				for _, note := range discussion.Notes {
+					if note.ID == gitlabInfo.noteID {
+						discussionID = discussion.ID
+						break
+					}
+				}
+				if discussionID != "" {
+					break
+				}
+			}
+
+			// If we found it or there are no more pages, stop
+			if discussionID != "" || resp.NextPage == 0 {
+				break
+			}
+			page = resp.NextPage
+		}
+
+		if discussionID == "" {
+			return "", errors.New("could not find discussion containing note " + strconv.Itoa(gitlabInfo.noteID))
+		}
+
+		// Create award emoji on the original note
+		_, _, err := client.AwardEmoji.CreateMergeRequestAwardEmojiOnNote(
 			projectID,
 			gitlabInfo.mergeRequestIID,
-			&gitlab.CreateMergeRequestNoteOptions{Body: &content},
+			gitlabInfo.noteID,
+			&gitlab.CreateAwardEmojiOptions{Name: "thumbsup"},
 			gitlab.WithContext(ctx),
 		)
 		if err != nil {
 			return "", err
 		}
+
+		// Create a reply note within the same discussion thread
+		newNote, _, err := client.Discussions.AddMergeRequestDiscussionNote(
+			projectID,
+			gitlabInfo.mergeRequestIID,
+			discussionID,
+			&gitlab.AddMergeRequestDiscussionNoteOptions{Body: &content},
+			gitlab.WithContext(ctx),
+		)
+		if err != nil {
+			return "", err
+		}
+
 		// Get MR to construct the URL
 		mr, _, err := client.MergeRequests.GetMergeRequest(projectID, gitlabInfo.mergeRequestIID, nil, gitlab.WithContext(ctx))
 		if err != nil {
 			return "", err
 		}
-		noteURL = mr.WebURL + "#note_" + strconv.Itoa(note.ID)
+
+		noteURL = mr.WebURL + "#note_" + strconv.Itoa(newNote.ID)
 	} else {
-		// Create a reply note on the commit
-		_, _, err := client.Commits.PostCommitComment(
+		// Find the discussion that contains our note by fetching all commit discussions with pagination
+		var discussionID string
+		page := 1
+		perPage := 100
+
+		for {
+			discussions, resp, err := client.Discussions.ListCommitDiscussions(
+				projectID,
+				gitlabInfo.commit,
+				&gitlab.ListCommitDiscussionsOptions{
+					Page:    page,
+					PerPage: perPage,
+				},
+				gitlab.WithContext(ctx),
+			)
+			if err != nil {
+				return "", err
+			}
+
+			// Search for our note in the discussions
+			for _, discussion := range discussions {
+				for _, note := range discussion.Notes {
+					if note.ID == gitlabInfo.noteID {
+						discussionID = discussion.ID
+						break
+					}
+				}
+				if discussionID != "" {
+					break
+				}
+			}
+
+			// If we found it or there are no more pages, stop
+			if discussionID != "" || resp.NextPage == 0 {
+				break
+			}
+			page = resp.NextPage
+		}
+
+		if discussionID == "" {
+			return "", errors.New("could not find discussion containing note " + strconv.Itoa(gitlabInfo.noteID))
+		}
+
+		// Create award emoji on the original note
+		// Note: Award emojis on commit notes use the same API as merge request notes
+		_, _, err := client.AwardEmoji.CreateMergeRequestAwardEmojiOnNote(
 			projectID,
-			gitlabInfo.commit,
-			&gitlab.PostCommitCommentOptions{Note: &content},
+			0, // Not a merge request, but this API works for commit notes too
+			gitlabInfo.noteID,
+			&gitlab.CreateAwardEmojiOptions{Name: "thumbsup"},
 			gitlab.WithContext(ctx),
 		)
 		if err != nil {
 			return "", err
 		}
+
+		// Create a reply note within the same discussion thread
+		newNote, _, err := client.Discussions.AddCommitDiscussionNote(
+			projectID,
+			gitlabInfo.commit,
+			discussionID,
+			&gitlab.AddCommitDiscussionNoteOptions{Body: &content},
+			gitlab.WithContext(ctx),
+		)
+		if err != nil {
+			return "", err
+		}
+
 		// Get the project to construct the URL
 		project, _, err := client.Projects.GetProject(projectID, nil, gitlab.WithContext(ctx))
 		if err != nil {
 			return "", err
 		}
-		// Construct URL manually - commit comments don't return a direct URL
-		noteURL = project.WebURL + "/-/commit/" + gitlabInfo.commit
+
+		noteURL = project.WebURL + "/-/commit/" + gitlabInfo.commit + "#note_" + strconv.Itoa(newNote.ID)
 	}
 
 	return noteURL, nil
